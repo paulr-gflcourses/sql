@@ -1,5 +1,8 @@
 <?php
 
+define("USER","user12");
+define("PASSWORD","user12");
+define("DBNAME","user12");
 
 function connectMySQL()
 {
@@ -13,6 +16,7 @@ function connectMySQL()
     return $link;
 }
 
+
 function maxId($link)
 {
     $sql="SELECT MAX(id) from task1";
@@ -21,42 +25,38 @@ function maxId($link)
 }
 function insertion($link)
 {
-//$n=1000000;
-    $n=10;
-    $nameLen = 100;
-    //$nameLen=4;
+    $n=1000000;
+    //$n=10;
+    $nameLength = 100;
+    //$nameLength=4;
+	
+	$characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    $charactersLength = strlen($characters);
 
-    $letters = array_merge(range(65,90), range(97,122));
-    $letters = array_flip($letters);
-    //$b = array_map("chr", $letters);
-    //print_r($letters);
-    //print_r($b);
-
-        $sql = "INSERT INTO task1(id, name, descr) VALUES(?,?,?)";
-        $stmt = $link->prepare($sql);
+    $sql = "INSERT INTO task1(id, name, descr) VALUES(?,?,?)";
+    $stmt = $link->prepare($sql);
         
-    $lastId = maxId($link);
-    //echo "LastId=$lastId";
-    for($i=$lastId; $i<$n; $i++){
-        $name="";
-        for($j=0; $j<$nameLen; $j++){
-            $name .= chr(array_rand($letters));
-        }
+	$newId = maxId($link)+1;
+    for($i=$newId; $i<$n; $i++){
+        $name = '';
+		for ($j = 0; $j < $nameLength; $j++) {
+			$name .= $characters[rand(0, $charactersLength - 1)];
+		}
         $descr = str_repeat($name, 5);
-
-    $id=$i;
+		$id=$i;
         $stmt->bindParam(1, $id);
         $stmt->bindParam(2, $name);
         $stmt->bindParam(3, $descr);
         $stmt->execute();
-
+		echo "$id\n";
     }
     return null;
 }
 
 
 $link = connectMySQL();
-//insertion($link);
-//maxId($link);
+insertion($link);
 
+
+?>
 ?>

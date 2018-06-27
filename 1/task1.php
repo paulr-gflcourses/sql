@@ -1,10 +1,10 @@
 <?php
-/*define("USER","user12");
-define("PASSWORD","user12");*/
+define("USER","user12");
+define("PASSWORD","user12");
 define("DBNAME","user12");
 
-define("USER","root");
-define("PASSWORD","123");
+//define("USER","root");
+//define("PASSWORD","123");
 
 function connectMySQL()
 {
