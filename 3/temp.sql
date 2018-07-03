@@ -1,52 +1,90 @@
-
 14
-SELECT maker FROM 
-(SELECT type, maker, COUNT(type) AS ct  FROM Product
-GROUP BY type, maker)
-
-SELECT maker,COUNT(type) FROM Product 
-GROUP BY maker
+SELECT p.maker
+FROM(
+SELECT maker,type,COUNT(type) c 
+FROM Product
+GROUP BY maker,type
 HAVING COUNT(type)>1
-
-Больше 1 модели 1 типа
-SELECT type, maker,COUNT(maker) AS mc FROM Product 
-GROUP BY type, maker
-HAVING COUNT(maker)>1
+) p
+GROUP BY p.maker
+HAVING COUNT(p.maker)=1
 
 
-Только 1 тип у производителя
+
+SELECT p.maker, COUNT(p.type)
+FROM(
+SELECT maker,type,COUNT(model) count_m
+FROM Product
+GROUP BY maker,type
+)p
+GROUP BY p.maker
+
+
+
+SELECT maker, type 
+FROM Product 
+WHERE maker IN (
+
+SELECT maker FROM(
+SELECT maker,type,COUNT(model) cm FROM Product 
+GROUP BY maker, type 
+HAVING COUNT(model) > 1
+)p
+
+GROUP BY maker
+HAVING COUNT(type) = 1
+)
+
+
+
+Производители, кот производят 1 тип:
+SELECT maker FROM(
+SELECT maker,type,COUNT(model) cm FROM Product 
+GROUP BY maker, type 
+)p
+GROUP BY maker
+HAVING COUNT(maker)=1
+
+
 
 
 25
-SELECT maker FROM Product
-INNER JOIN (
-SELECT model,speed FROM PC
+SELECT maker FROM 
+(SELECT model, maker, type FROM Product 
+WHERE type='Printer') prod
+INNER JOIN(
+SELECT model,MAX(speed) max_speed FROM PC 
 WHERE ram=(SELECT MIN(ram) FROM PC)
-) comp
-ON Product.model=comp.model
-WHERE comp.speed=(SELECT MAX(speed) FROM comp)
-AND type='Printer'
-
-SELECT maker FROM Product
-INNER JOIN (
-SELECT model FROM(
-SELECT model,speed FROM PC
-WHERE ram=(SELECT MIN(ram) FROM PC)) AS comp
-WHERE speed=(SELECT MAX(speed) FROM comp)
-) AS compfast 
-ON Product.model=compfast.model
-
-
-SELECT model FROM(
-SELECT model,speed FROM PC
-WHERE ram=(SELECT MIN(ram) FROM PC)
-) p
-WHERE p.speed=(SELECT MIN(speed) FROM p)
-
-
-27.
-SELECT maker, AVG(PC.hd)
-FROM Product
-INNER JOIN PC ON Product.model=PC.model
-INNER JOIN Printer ON Product.model=Printer.model
+GROUP BY model
+)p ON prod.model=p.model
 GROUP BY maker
+
+
+
+SELECT maker FROM Product
+WHERE type='Printer' AND model IN(
+SELECT model FROM PC
+WHERE speed = (SELECT MAX(speed) FROM (SELECT speed FROM PC WHERE ram=(SELECT MIN(ram) FROM PC)) AS z4)
+
+)
+
+
+
+
+
+SELECT maker FROM Product
+WHERE 
+maker IN(SELECT DISTINCT maker FROM Product WHERE type='Printer')
+AND
+model IN(
+SELECT model FROM PC 
+WHERE speed=(
+SELECT MAX(speed) max_speed FROM (
+	SELECT model,speed FROM PC
+	WHERE ram=(SELECT MIN(ram) FROM PC)
+) p
+)
+AND ram=(SELECT MIN(ram) FROM PC)
+)
+
+

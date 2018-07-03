@@ -54,7 +54,17 @@ INNER JOIN Product ON Product.model=PC.model
 WHERE Product.maker='A'
 
 14.
-?
+SELECT maker,type FROM Product
+WHERE maker IN(
+SELECT maker FROM(
+SELECT maker,type FROM Product 
+GROUP BY maker, type 
+)p
+GROUP BY maker
+HAVING COUNT(maker)=1
+)
+GROUP BY maker,type
+HAVING COUNT(model)>1
 
 15.
 SELECT hd FROM PC
@@ -126,7 +136,20 @@ WHERE price=(
 SELECT MAX(price) FROM models)
 
 25.
-? 
+SELECT DISTINCT maker FROM Product
+WHERE 
+maker IN(SELECT DISTINCT maker FROM Product WHERE type='Printer')
+AND
+model IN(
+SELECT model FROM PC 
+WHERE speed=(
+SELECT MAX(speed) max_speed FROM (
+	SELECT model,speed FROM PC
+	WHERE ram=(SELECT MIN(ram) FROM PC)
+) p
+)
+AND ram=(SELECT MIN(ram) FROM PC)
+)
 
 26.
 SELECT AVG(price) AVG_price FROM 
@@ -137,10 +160,21 @@ INNER JOIN Product ON prices.model = Product.model
 WHERE Product.maker='A'
 
 27.
+SELECT maker,AVG(PC.hd) Avg_hd
+FROM Product
+INNER JOIN PC ON Product.model=PC.model
+WHERE maker IN (SELECT maker FROM Product WHERE type='Printer')
+GROUP BY maker
 
+28.
+SELECT COUNT(p.maker) 
+FROM (
+SELECT maker FROM Product
+GROUP BY maker
+HAVING COUNT(model)=1
+) p
 
-
-
+29.
 
 
 
