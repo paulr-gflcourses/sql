@@ -1,0 +1,356 @@
+
+mysql> SELECT * FROM TableA
+    -> INNER JOIN TableB
+    -> ON TableA.name = TableB.name;
++------+--------+------+--------+
+| id   | name   | id   | name   |
++------+--------+------+--------+
+|    1 | Pirate |    2 | Pirate |
+|    3 | Ninja  |    4 | Ninja  |
++------+--------+------+--------+
+2 rows in set (0.01 sec)
+
+mysql> EXPLAIN
+    -> SELECT * FROM TableA INNER JOIN TableB ON TableA.name = TableB.name;
++----+-------------+--------+------------+------+---------------+------+---------+------+------+----------+----------------------------------------------------+
+| id | select_type | table  | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra                                              |
++----+-------------+--------+------------+------+---------------+------+---------+------+------+----------+----------------------------------------------------+
+|  1 | SIMPLE      | TableA | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    4 |   100.00 | NULL                                               |
+|  1 | SIMPLE      | TableB | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    4 |    25.00 | Using where; Using join buffer (Block Nested Loop) |
++----+-------------+--------+------------+------+---------------+------+---------+------+------+----------+----------------------------------------------------+
+2 rows in set, 1 warning (0.00 sec)
+
+
+
+mysql> SELECT * FROM TableA LEFT JOIN TableB ON TableA.name = TableB.name
+    -> UNION
+    -> SELECT * FROM TableA RIGHT JOIN TableB ON TableA.name = TableB.name;
++------+-----------+------+-------------+
+| id   | name      | id   | name        |
++------+-----------+------+-------------+
+|    1 | Pirate    |    2 | Pirate      |
+|    3 | Ninja     |    4 | Ninja       |
+|    2 | Monkey    | NULL | NULL        |
+|    4 | Spaghetti | NULL | NULL        |
+| NULL | NULL      |    1 | Rutagaba    |
+| NULL | NULL      |    3 | Darth Vader |
++------+-----------+------+-------------+
+
+mysql> EXPLAIN
+    -> SELECT * FROM TableA LEFT JOIN TableB ON TableA.name = TableB.name  UNION SELECT * FROM TableA RIGHT JOIN TableB ON TableA.name = TableB.name;
++----+--------------+------------+------------+------+---------------+------+---------+------+------+----------+----------------------------------------------------+
+| id | select_type  | table      | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra                                              |
++----+--------------+------------+------------+------+---------------+------+---------+------+------+----------+----------------------------------------------------+
+|  1 | PRIMARY      | TableA     | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    4 |   100.00 | NULL                                               |
+|  1 | PRIMARY      | TableB     | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    4 |   100.00 | Using where; Using join buffer (Block Nested Loop) |
+|  2 | UNION        | TableB     | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    4 |   100.00 | NULL                                               |
+|  2 | UNION        | TableA     | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    4 |   100.00 | Using where; Using join buffer (Block Nested Loop) |
+| NULL | UNION RESULT | <union1,2> | NULL       | ALL  | NULL          | NULL | NULL    | NULL | NULL |     NULL | Using temporary                                    |
++----+--------------+------------+------------+------+---------------+------+---------+------+------+----------+----------------------------------------------------+
+
+
+
+mysql> SELECT * FROM TableA
+    -> LEFT OUTER JOIN TableB
+    -> ON TableA.name = TableB.name;
++------+-----------+------+--------+
+| id   | name      | id   | name   |
++------+-----------+------+--------+
+|    1 | Pirate    |    2 | Pirate |
+|    3 | Ninja     |    4 | Ninja  |
+|    2 | Monkey    | NULL | NULL   |
+|    4 | Spaghetti | NULL | NULL   |
++------+-----------+------+--------+
+
+mysql> EXPLAIN
+    -> SELECT * FROM TableA LEFT OUTER JOIN TableB ON TableA.name = TableB.name;
++----+-------------+--------+------------+------+---------------+------+---------+------+------+----------+----------------------------------------------------+
+| id | select_type | table  | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra                                              |
++----+-------------+--------+------------+------+---------------+------+---------+------+------+----------+----------------------------------------------------+
+|  1 | SIMPLE      | TableA | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    4 |   100.00 | NULL                                               |
+|  1 | SIMPLE      | TableB | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    4 |   100.00 | Using where; Using join buffer (Block Nested Loop) |
++----+-------------+--------+------------+------+---------------+------+---------+------+------+----------+----------------------------------------------------+
+2 rows in set, 1 warning (0.00 sec)
+
+
+
+mysql> SELECT * FROM TableA
+    -> LEFT OUTER JOIN TableB
+    -> ON TableA.name = TableB.name
+    -> WHERE TableB.id IS null;
++------+-----------+------+------+
+| id   | name      | id   | name |
++------+-----------+------+------+
+|    2 | Monkey    | NULL | NULL |
+|    4 | Spaghetti | NULL | NULL |
++------+-----------+------+------+
+2 rows in set (0.02 sec)
+
+
+mysql> EXPLAIN
+    -> SELECT * FROM TableA LEFT OUTER JOIN TableB ON TableA.name = TableB.name WHERE TableB.id IS null;
++----+-------------+--------+------------+------+---------------+------+---------+------+------+----------+----------------------------------------------------+
+| id | select_type | table  | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra                                              |
++----+-------------+--------+------------+------+---------------+------+---------+------+------+----------+----------------------------------------------------+
+|  1 | SIMPLE      | TableA | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    4 |   100.00 | NULL                                               |
+|  1 | SIMPLE      | TableB | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    4 |    25.00 | Using where; Using join buffer (Block Nested Loop) |
++----+-------------+--------+------------+------+---------------+------+---------+------+------+----------+----------------------------------------------------+
+2 rows in set, 1 warning (0.00 sec)
+
+
+
+mysql> SELECT * FROM TableA LEFT JOIN TableB ON TableA.name = TableB.name WHERE TableB.id IS NULL UNION SELECT * FROM TableA RIGHT JOIN TableB ON TableA.name = TableB.name WHERE TableA.id IS null;
++------+-----------+------+-------------+
+| id   | name      | id   | name        |
++------+-----------+------+-------------+
+|    2 | Monkey    | NULL | NULL        |
+|    4 | Spaghetti | NULL | NULL        |
+| NULL | NULL      |    1 | Rutagaba    |
+| NULL | NULL      |    3 | Darth Vader |
++------+-----------+------+-------------+
+4 rows in set (0.00 sec)
+
+mysql> EXPLAIN
+    -> SELECT * FROM TableA LEFT JOIN TableB ON TableA.name = TableB.name WHERE TableB.id IS NULL UNION SELECT * FROM TableA RIGHT JOIN TableB ON TableA.name = TableB.name WHERE TableA.id IS null;
++----+--------------+------------+------------+------+---------------+------+---------+------+------+----------+----------------------------------------------------+
+| id | select_type  | table      | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra                                              |
++----+--------------+------------+------------+------+---------------+------+---------+------+------+----------+----------------------------------------------------+
+|  1 | PRIMARY      | TableA     | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    4 |   100.00 | NULL                                               |
+|  1 | PRIMARY      | TableB     | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    4 |    25.00 | Using where; Using join buffer (Block Nested Loop) |
+|  2 | UNION        | TableB     | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    4 |   100.00 | NULL                                               |
+|  2 | UNION        | TableA     | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    4 |    25.00 | Using where; Using join buffer (Block Nested Loop) |
+| NULL | UNION RESULT | <union1,2> | NULL       | ALL  | NULL          | NULL | NULL    | NULL | NULL |     NULL | Using temporary                                    |
++----+--------------+------------+------------+------+---------------+------+---------+------+------+----------+----------------------------------------------------+
+5 rows in set, 1 warning (0.00 sec)
+
+
+
+
+
+mysql> SELECT * FROM TableA
+    -> CROSS JOIN TableB;
++------+-----------+------+-------------+
+| id   | name      | id   | name        |
++------+-----------+------+-------------+
+|    1 | Pirate    |    1 | Rutagaba    |
+|    2 | Monkey    |    1 | Rutagaba    |
+|    3 | Ninja     |    1 | Rutagaba    |
+|    4 | Spaghetti |    1 | Rutagaba    |
+|    1 | Pirate    |    2 | Pirate      |
+|    2 | Monkey    |    2 | Pirate      |
+|    3 | Ninja     |    2 | Pirate      |
+|    4 | Spaghetti |    2 | Pirate      |
+|    1 | Pirate    |    3 | Darth Vader |
+|    2 | Monkey    |    3 | Darth Vader |
+|    3 | Ninja     |    3 | Darth Vader |
+|    4 | Spaghetti |    3 | Darth Vader |
+|    1 | Pirate    |    4 | Ninja       |
+|    2 | Monkey    |    4 | Ninja       |
+|    3 | Ninja     |    4 | Ninja       |
+|    4 | Spaghetti |    4 | Ninja       |
++------+-----------+------+-------------+
+16 rows in set (0.00 sec)
+
+
+mysql> EXPLAIN
+    -> SELECT * FROM TableA CROSS JOIN TableB;
++----+-------------+--------+------------+------+---------------+------+---------+------+------+----------+---------------------------------------+
+| id | select_type | table  | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra                                 |
++----+-------------+--------+------------+------+---------------+------+---------+------+------+----------+---------------------------------------+
+|  1 | SIMPLE      | TableA | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    4 |   100.00 | NULL                                  |
+|  1 | SIMPLE      | TableB | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    4 |   100.00 | Using join buffer (Block Nested Loop) |
++----+-------------+--------+------------+------+---------------+------+---------+------+------+----------+---------------------------------------+
+2 rows in set, 1 warning (0.00 sec)
+
+
+
+
+
+
+user12=> SELECT * FROM TableA
+user12-> INNER JOIN TableB
+user12-> ON TableA.name = TableB.name;
+ id |  name  | id |  name
+----+--------+----+--------
+  1 | Pirate |  2 | Pirate
+  3 | Ninja  |  4 | Ninja
+(2 rows)
+
+user12-> SELECT * FROM TableA
+INNER JOIN TableB
+ON TableA.name = TableB.name;
+                              QUERY PLAN
+----------------------------------------------------------------------
+ Hash Join  (cost=30.25..193.25 rows=4050 width=124)
+   Hash Cond: ((tablea.name)::text = (tableb.name)::text)
+   ->  Seq Scan on tablea  (cost=0.00..19.00 rows=900 width=62)
+   ->  Hash  (cost=19.00..19.00 rows=900 width=62)
+         ->  Seq Scan on tableb  (cost=0.00..19.00 rows=900 width=62)
+(5 rows)
+
+
+
+
+
+user12=> SELECT * FROM TableA
+user12-> FULL OUTER JOIN TableB
+user12-> ON TableA.name = TableB.name;
+ id |   name    | id |    name
+----+-----------+----+-------------
+  1 | Pirate    |  2 | Pirate
+  2 | Monkey    |    |
+  3 | Ninja     |  4 | Ninja
+  4 | Spaghetti |    |
+    |           |  3 | Darth Vader
+    |           |  1 | Rutagaba
+(6 rows)
+
+user12=> EXPLAIN
+user12-> SELECT * FROM TableA
+FULL OUTER JOIN TableB
+ON TableA.name = TableB.name;
+                              QUERY PLAN
+----------------------------------------------------------------------
+ Hash Full Join  (cost=30.25..193.25 rows=4050 width=124)
+   Hash Cond: ((tablea.name)::text = (tableb.name)::text)
+   ->  Seq Scan on tablea  (cost=0.00..19.00 rows=900 width=62)
+   ->  Hash  (cost=19.00..19.00 rows=900 width=62)
+         ->  Seq Scan on tableb  (cost=0.00..19.00 rows=900 width=62)
+(5 rows)
+
+
+
+
+user12=> SELECT * FROM TableA
+user12-> LEFT OUTER JOIN TableB
+user12-> ON TableA.name = TableB.name;
+ id |   name    | id |  name
+----+-----------+----+--------
+  1 | Pirate    |  2 | Pirate
+  2 | Monkey    |    |
+  3 | Ninja     |  4 | Ninja
+  4 | Spaghetti |    |
+(4 rows)
+
+
+user12=> EXPLAIN
+user12-> SELECT * FROM TableA
+LEFT OUTER JOIN TableB
+ON TableA.name = TableB.name;
+                              QUERY PLAN
+----------------------------------------------------------------------
+ Hash Left Join  (cost=30.25..193.25 rows=4050 width=124)
+   Hash Cond: ((tablea.name)::text = (tableb.name)::text)
+   ->  Seq Scan on tablea  (cost=0.00..19.00 rows=900 width=62)
+   ->  Hash  (cost=19.00..19.00 rows=900 width=62)
+         ->  Seq Scan on tableb  (cost=0.00..19.00 rows=900 width=62)
+(5 rows)
+
+
+
+
+
+user12=> SELECT * FROM TableA
+user12-> LEFT OUTER JOIN TableB
+user12-> ON TableA.name = TableB.name
+user12-> WHERE TableB.id IS null;
+ id |   name    | id | name
+----+-----------+----+------
+  2 | Monkey    |    |
+  4 | Spaghetti |    |
+(2 rows)
+
+
+user12=> EXPLAIN
+user12-> SELECT * FROM TableA
+LEFT OUTER JOIN TableB
+ON TableA.name = TableB.name
+WHERE TableB.id IS null;
+                              QUERY PLAN
+----------------------------------------------------------------------
+ Hash Left Join  (cost=30.25..193.25 rows=20 width=124)
+   Hash Cond: ((tablea.name)::text = (tableb.name)::text)
+   Filter: (tableb.id IS NULL)
+   ->  Seq Scan on tablea  (cost=0.00..19.00 rows=900 width=62)
+   ->  Hash  (cost=19.00..19.00 rows=900 width=62)
+         ->  Seq Scan on tableb  (cost=0.00..19.00 rows=900 width=62)
+(6 rows)
+
+
+
+
+user12=> SELECT * FROM TableA
+user12-> FULL OUTER JOIN TableB
+user12-> ON TableA.name = TableB.name
+user12-> WHERE TableA.id IS null
+user12-> OR TableB.id IS null;
+ id |   name    | id |    name
+----+-----------+----+-------------
+  2 | Monkey    |    |
+  4 | Spaghetti |    |
+    |           |  3 | Darth Vader
+    |           |  1 | Rutagaba
+(4 rows)
+
+
+user12=> EXPLAIN
+user12-> SELECT * FROM TableA
+FULL OUTER JOIN TableB
+ON TableA.name = TableB.name
+WHERE TableA.id IS null
+OR TableB.id IS null;
+                              QUERY PLAN
+----------------------------------------------------------------------
+ Hash Full Join  (cost=30.25..193.25 rows=40 width=124)
+   Hash Cond: ((tablea.name)::text = (tableb.name)::text)
+   Filter: ((tablea.id IS NULL) OR (tableb.id IS NULL))
+   ->  Seq Scan on tablea  (cost=0.00..19.00 rows=900 width=62)
+   ->  Hash  (cost=19.00..19.00 rows=900 width=62)
+         ->  Seq Scan on tableb  (cost=0.00..19.00 rows=900 width=62)
+(6 rows)
+
+
+
+
+user12=> SELECT * FROM TableA
+user12-> CROSS JOIN TableB;
+ id |   name    | id |    name
+----+-----------+----+-------------
+  1 | Pirate    |  1 | Rutagaba
+  1 | Pirate    |  2 | Pirate
+  1 | Pirate    |  3 | Darth Vader
+  1 | Pirate    |  4 | Ninja
+  2 | Monkey    |  1 | Rutagaba
+  2 | Monkey    |  2 | Pirate
+  2 | Monkey    |  3 | Darth Vader
+  2 | Monkey    |  4 | Ninja
+  3 | Ninja     |  1 | Rutagaba
+  3 | Ninja     |  2 | Pirate
+  3 | Ninja     |  3 | Darth Vader
+  3 | Ninja     |  4 | Ninja
+  4 | Spaghetti |  1 | Rutagaba
+  4 | Spaghetti |  2 | Pirate
+  4 | Spaghetti |  3 | Darth Vader
+  4 | Spaghetti |  4 | Ninja
+(16 rows)
+
+
+user12=> EXPLAIN
+user12-> SELECT * FROM TableA
+CROSS JOIN TableB;
+                              QUERY PLAN
+----------------------------------------------------------------------
+ Nested Loop  (cost=0.00..10165.25 rows=810000 width=124)
+   ->  Seq Scan on tablea  (cost=0.00..19.00 rows=900 width=62)
+   ->  Materialize  (cost=0.00..23.50 rows=900 width=62)
+         ->  Seq Scan on tableb  (cost=0.00..19.00 rows=900 width=62)
+(4 rows)
+
+
+
+
+
+
+
+
+
