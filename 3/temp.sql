@@ -88,3 +88,13 @@ AND ram=(SELECT MIN(ram) FROM PC)
 )
 
 
+
+29
+
+SELECT u.point, u.date, Income_o.Inc, Outcome_o.out FROM
+(SELECT point, date FROM Income_o
+UNION 
+SELECT point, date FROM Outcome_o) u
+LEFT JOIN Income_o ON u.date=Income_o.date
+LEFT JOIN Outcome_o ON u.date=Outcome_o.date
+
