@@ -16,3 +16,14 @@ right join OUTCOME_O t2 ON t1.point = t2.point and t1.date = t2.date
     Missing values are considered to be NULL.
 30. select point, date, sum(sum_out), sum(sum_inc) from( select point, date, sum(inc) as sum_inc, null as sum_out from INCOME group by point, date union select point, date, null as sum_inc, sum(out)
     as sum_out from OUTCOME group by point, date ) as t group by point, date order by point
+
+	
+	
+	
+	
+	
+	
+	.git config
+	
+https://github.com/MindTwisted/perl_course
+
