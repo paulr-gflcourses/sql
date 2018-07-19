@@ -175,6 +175,14 @@ HAVING COUNT(model)=1
 ) p
 
 29.
+SELECT u.point, u.date, Income_o.inc, Outcome_o.out FROM
+(SELECT point, date FROM Income_o
+UNION
+SELECT point, date FROM Outcome_o) u
+LEFT JOIN Income_o ON u.date=Income_o.date AND u.point=Income_o.point
+LEFT JOIN Outcome_o ON u.date=Outcome_o.date AND u.point=Outcome_o.point
+
+30.
 
 
 
