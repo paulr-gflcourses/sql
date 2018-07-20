@@ -183,6 +183,13 @@ LEFT JOIN Income_o ON u.date=Income_o.date AND u.point=Income_o.point
 LEFT JOIN Outcome_o ON u.date=Outcome_o.date AND u.point=Outcome_o.point
 
 30.
+SELECT u.point, u.date, SUM(u.sum_out) Outcome, SUM(u.sum_inc) Income FROM
+(SELECT point, date, NULL AS sum_out, SUM(inc) AS sum_inc FROM Income
+GROUP BY point, date
+UNION
+SELECT point, date, SUM(out) AS sum_out, NULL AS sum_inc FROM Outcome
+GROUP BY point, date) u
+GROUP BY point, date
 
 
 

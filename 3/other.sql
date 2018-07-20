@@ -14,8 +14,16 @@ right join OUTCOME_O t2 ON t1.point = t2.point and t1.date = t2.date
 30. Under the assumption that receipts of money (inc) and payouts (out) can be registered any number of times a day for each collection point [i.e. the code column is the primary key], display a table with one corresponding row for each operating date of each collection point.
     Result set: point, date, total payout per day (out), total money intake per day (inc).
     Missing values are considered to be NULL.
-30. select point, date, sum(sum_out), sum(sum_inc) from( select point, date, sum(inc) as sum_inc, null as sum_out from INCOME group by point, date union select point, date, null as sum_inc, sum(out)
-    as sum_out from OUTCOME group by point, date ) as t group by point, date order by point
+30. select point, date, sum(sum_out), sum(sum_inc) 
+from
+( select point, date, sum(inc) as sum_inc, null as sum_out from INCOME 
+group by point, date 
+
+union 
+
+select point, date, null as sum_inc, sum(out) as sum_out from OUTCOME 
+group by point, date ) as t 
+	group by point, date order by point
 
 	
 	

@@ -156,4 +156,10 @@ FULL JOIN Outcome AS o
 ON i.point=o.point AND i.date=o.date
 ORDER BY i.point, o.point, i.date, o.date
 
+SELECT * FROM Income AS i
+FULL JOIN Outcome AS o
+ON i.point=o.point AND i.date=o.date
+WHERE i.date = '2001-03-22 00:00:00.000' AND i.point=1
+ORDER BY i.point, o.point, i.date, o.date
+
 
